@@ -6,7 +6,7 @@ Schedule a season.
 
 Deploy the app to azure:
 
-    npm build
+    npm run build
     cd dist/season-scheduler
 
     az login
