@@ -1,13 +1,10 @@
 import {Component} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import * as FileSaver from "file-saver";
+import {ScheduleService} from './schedule.service';
+import {Skipability} from './skipability';
+import {State} from './state';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
-
-enum State {
-  Planned,
-  Substitute,
-  Unplanned
-}
 
 @Component({
   selector: 'app-root',
@@ -22,41 +19,45 @@ export class AppComponent {
   public people: string[] = [];
   public dates: string[] = [];
   public schedule: State[][] = [];
-  public availability: boolean[][] = [];
+  public availabilities: boolean[][] = [];
+  public skipabilities: Skipability[] = [];
 
   public showTable = false;
 
   public constructor(
     private readonly dialog: MatDialog,
+    private readonly scheduleService: ScheduleService
   ) {
   }
 
   public prepareData(): void {
     // Example data - read out real data
-    this.dates = ['26.11.', '28.11.', '01.12.'];
-    this.people = ['Person A', 'Person B']
+    for (let p = 0; p < 20; p++) {
+      this.people.push('Person ' + p)
+      this.skipabilities.push(p % 3);
+    }
+    this.dates = ['27.09.', '29.09.', '04.10.', '06.10.', '12.10.', '13.10.', '18.10.', '20.10.'];
 
-    // Generate example arrays
-    this.schedule.push([State.Planned, State.Unplanned, State.Unplanned]);
-    this.schedule.push([State.Unplanned, State.Substitute, State.Planned]);
-    this.schedule.push([State.Unplanned, State.Planned, State.Unplanned]);
+    // Generate base schedule
+    for (let p = 0; p < this.people.length; p++) {
+      const row = [];
+      for (let d = 0; d < this.dates.length; d++) {
+        row.push(Math.random() < 0.8);
+      }
+      this.availabilities.push(row);
+      // this.skipabilities.push(Math.round(Math.random() * 2))
+    }
+    console.log('Generated skipabilities:', this.skipabilities);
 
     // TODO read out & save availability
 
     // Prepare table
     this.displayedColumns = ['name'].concat(this.dates);
-    this.showTable = true;
-  }
-
-  public getScheduleEntry(person: string, dateId: number): State {
-    console.log('person:', person);
-    const personId = this.people.indexOf(person);
-    console.log('Trying to get personId=', personId, 'dateId=', dateId, 'from schedule', this.schedule);
-    return this.schedule[personId][dateId];
   }
 
   public generateSchedule(): void {
-    // TODO
+    this.schedule = this.scheduleService.schedule(this.availabilities, this.skipabilities);
+    this.showTable = true;
   }
 
   public downloadData(): void {

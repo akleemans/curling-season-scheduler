@@ -1,9 +1,5 @@
-table {
-  width: 100%;
-}
-
 .container {
-  margin: 30px auto;
+  margin: 10px auto;
   width: 730px;
 }
 
@@ -13,7 +9,33 @@ mat-icon {
 
 .button-bar {
   display: flex;
+
   button {
     margin: 5px;
   }
+}
+
+.team-one {
+  background-color: orange;
+}
+
+.team-one {
+  background-color: mediumseagreen;
+}
+
+table {
+  // font-family: arial, sans-serif;
+  border-collapse: collapse;
+  // width: 100%;
+  font-size: 12px;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 2px;
+}
+
+tr:nth-child(even) {
+  background-color: #eeeeee;
 }

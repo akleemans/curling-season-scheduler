@@ -17,6 +17,41 @@
   </div>
 </div>
 
+<table *ngIf="showTable">
+  <tr>
+    <th>Name</th>
+    <th *ngFor="let date of dates">{{date}}</th>
+    <th>Games</th>
+  </tr>
+  <tr *ngFor="let person of people; let personIndex = index">
+    <td>{{person}}</td>
+    <td *ngFor="let date of dates; let dateIndex = index">
+      <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.TeamOne"
+            class="team-one"> 1 </span>
+      <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.TeamTwo"
+            class="team-two"> 2 </span>
+      <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.Substitute"> E </span>
+      <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.Unplanned"> - </span>
+    </td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td><b>Team 1</b></td>
+    <td *ngFor="let date of dates;">
+      0
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>Team 2</b></td>
+    <td *ngFor="let date of dates;">
+      0
+    </td>
+    <td></td>
+  </tr>
+</table>
+
+<!--
 <table *ngIf="showTable" mat-table [dataSource]="people">
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef> Name</th>
@@ -26,7 +61,8 @@
   <ng-container *ngFor="let col of dates; let colIndex = index" [matColumnDef]="col">
     <th mat-header-cell *matHeaderCellDef>{{col}}</th>
     <td mat-cell *matCellDef="let element">
-      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.Planned"> Yes </span>
+      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.PlannedOne" class="team-one"> 1 </span>
+      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.PlannedTwo" class="team-two"> 2 </span>
       <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.Substitute"> E </span>
       <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.Unplanned"> - </span>
     </td>
@@ -35,4 +71,5 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
+-->
 
