@@ -17,7 +17,9 @@
   </div>
 </div>
 
-<table *ngIf="showTable">
+<mat-spinner *ngIf="appState === appStateEnum.SOLVING"></mat-spinner>
+
+<table *ngIf="appState === appStateEnum.SOLVED">
   <tr>
     <th>Name</th>
     <th *ngFor="let date of dates">{{date}}</th>
@@ -50,26 +52,3 @@
     <td></td>
   </tr>
 </table>
-
-<!--
-<table *ngIf="showTable" mat-table [dataSource]="people">
-  <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef> Name</th>
-    <td mat-cell *matCellDef="let element"> {{element}} </td>
-  </ng-container>
-
-  <ng-container *ngFor="let col of dates; let colIndex = index" [matColumnDef]="col">
-    <th mat-header-cell *matHeaderCellDef>{{col}}</th>
-    <td mat-cell *matCellDef="let element">
-      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.PlannedOne" class="team-one"> 1 </span>
-      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.PlannedTwo" class="team-two"> 2 </span>
-      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.Substitute"> E </span>
-      <span *ngIf="getScheduleEntry(element, colIndex) === stateEnum.Unplanned"> - </span>
-    </td>
-  </ng-container>
-
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-</table>
--->
-

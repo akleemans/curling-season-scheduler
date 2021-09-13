@@ -1,10 +1,16 @@
 import {Component} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import * as FileSaver from "file-saver";
-import {ScheduleService} from './schedule.service';
 import {Skipability} from './skipability';
 import {State} from './state';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
+import {WorkerMessage, WorkerStatus} from './worker-message';
+
+enum AppState {
+  INITIAL,
+  SOLVING,
+  SOLVED
+}
 
 @Component({
   selector: 'app-root',
@@ -14,6 +20,7 @@ import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
 export class AppComponent {
   public displayedColumns: string[] = [];
   public readonly stateEnum = State;
+  public readonly appStateEnum = AppState;
 
   // data
   public people: string[] = [];
@@ -22,11 +29,10 @@ export class AppComponent {
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
 
-  public showTable = false;
+  public appState = AppState.INITIAL;
 
   public constructor(
     private readonly dialog: MatDialog,
-    private readonly scheduleService: ScheduleService
   ) {
   }
 
@@ -36,7 +42,9 @@ export class AppComponent {
       this.people.push('Person ' + p)
       this.skipabilities.push(p % 3);
     }
-    this.dates = ['27.09.', '29.09.', '04.10.', '06.10.', '12.10.', '13.10.', '18.10.', '20.10.'];
+    for (let d = 0; d < 10; d++) {
+      this.dates.push('date ' + d)
+    }
 
     // Generate base schedule
     for (let p = 0; p < this.people.length; p++) {
@@ -45,8 +53,8 @@ export class AppComponent {
         row.push(Math.random() < 0.8);
       }
       this.availabilities.push(row);
-      // this.skipabilities.push(Math.round(Math.random() * 2))
     }
+    console.log('Generated availabilities:', this.availabilities);
     console.log('Generated skipabilities:', this.skipabilities);
 
     // TODO read out & save availability
@@ -56,8 +64,36 @@ export class AppComponent {
   }
 
   public generateSchedule(): void {
-    this.schedule = this.scheduleService.schedule(this.availabilities, this.skipabilities);
-    this.showTable = true;
+    this.appState = AppState.SOLVING;
+
+    // Create a new worker
+    const worker = new Worker(new URL('./main.worker', import.meta.url), {type: 'module'});
+    worker.onmessage = event => {
+      console.log(`MainComponent got worker message: ${event.data}!`);
+      const message: WorkerMessage = event.data;
+      switch (message.status) {
+        case WorkerStatus.SOLVING:
+          console.log('Solving:', message.content);
+          break;
+        case WorkerStatus.SOLVED:
+          console.log('Solved!', message.content);
+          this.schedule = JSON.parse(message.content);
+          this.appState = AppState.SOLVED;
+          worker.terminate();
+          break;
+        case WorkerStatus.UNSOLVABLE:
+          this.appState = AppState.SOLVED;
+          console.log('Schedule not solvable!');
+          worker.terminate();
+          break;
+      }
+    };
+    const data = {
+      availabilities: this.availabilities,
+      skipabilities: this.skipabilities
+    };
+    console.log('Starting worker!', worker);
+    worker.postMessage(data);
   }
 
   public downloadData(): void {
