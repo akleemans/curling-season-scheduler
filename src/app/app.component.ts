@@ -96,7 +96,8 @@ export class AppComponent {
     };
     const data = {
       availabilities: this.availabilities,
-      skipabilities: this.skipabilities
+      skipabilities: this.skipabilities,
+      dates: this.dates
     };
     console.log('Starting worker!', worker);
     worker.postMessage(data);

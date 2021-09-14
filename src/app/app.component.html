@@ -17,9 +17,8 @@
       3. Export
     </button>
   </div>
+  <mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
 </div>
-
-<mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
 
 <table *ngIf="appState === appStateEnum.Solved">
   <tr>

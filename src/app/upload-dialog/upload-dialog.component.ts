@@ -48,7 +48,7 @@ export class UploadDialogComponent {
     const people: string[] = [];
     const dates: string[] = [];
 
-    console.log('content:', content);
+    // console.log('content:', content);
     let csvToRowArray = content.split("\n");
     for (let i = 6; i < csvToRowArray.length; i++) {
       let row = csvToRowArray[i].split(";");
@@ -62,15 +62,15 @@ export class UploadDialogComponent {
       skipabilities.push(+s);
 
       // availabilities
-      availabilities.push(row.slice(1).map(a => a === 'OK'));
+      availabilities.push(row.slice(1).map(a => a.includes('OK')));
     }
     // dates
     const months = csvToRowArray[3].split(';');
     const days = csvToRowArray[4].split(';');
     const monthMap: { [month: string]: string } =
       {
-        'September': '.09.', 'Oktober': '.10.', 'November': '.11.', 'Dezember': '.12.',
-        'Januar': '.01.', 'Februar': '.02.'
+        'September': '.09.21', 'Oktober': '.10.21', 'November': '.11.21', 'Dezember': '.12.21',
+        'Januar': '.01.22', 'Februar': '.02.22'
       };
     let currentMonth = '';
     let currentDay = '';
@@ -81,7 +81,7 @@ export class UploadDialogComponent {
         currentMonth = monthMap[months[i].split(' ')[0]];
       }
       if (days[i].trim() !== '') {
-        currentDay = days[i]
+        currentDay = days[i].split(' ')[1].trim();
         idx = '';
       } else {
         idx = '(2)';

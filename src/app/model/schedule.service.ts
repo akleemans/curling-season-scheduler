@@ -7,35 +7,51 @@ type Grid = (boolean | undefined)[][];
 export class ScheduleService {
   private static readonly MATCHES_PER_DAY = 8;
   private static readonly MIN_SKIPABILITY = 3;
+  private static readonly MIN_MATCHES_PER_PERSON = 5;
 
   private static peopleCount: number = 0;
   private static dateCount: number = 0;
   private static maxMatchesPerPerson: number = 0;
   private static skipabilities: Skipability[] = [];
+  private static dates: string[] = [];
+  private static minMatchesPerPerson: number[] = [];
 
-  public static schedule(availabilities: Grid, skipabilities: Skipability[]): CellState[][] {
+  private static solutions: Grid[] = [];
+
+  public static schedule(availabilities: Grid, skipabilities: Skipability[], dates: string[]): CellState[][] {
     this.skipabilities = skipabilities;
+    this.dates = dates;
     this.peopleCount = availabilities.length;
     this.dateCount = availabilities[0].length;
     console.log('peopleCount:', this.peopleCount, 'dateCount', this.dateCount);
     this.maxMatchesPerPerson = Math.round(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.peopleCount) + 1;
     console.log('Max matches per person:', this.maxMatchesPerPerson);
-    console.log('Got availabilities:', JSON.stringify(availabilities));
+    // Calculate min matches per person
+    for (let p of availabilities) {
+      this.minMatchesPerPerson.push(Math.min(_.sum(p.map(d => d === true ? 1 : 0)), this.MIN_MATCHES_PER_PERSON));
+    }
+    console.log('this.minMatchesPerPerson:', this.minMatchesPerPerson);
 
-    let grid: Grid = availabilities.map(p => p.map(d => d === true ? undefined : false));
+    const initialGrid: Grid = availabilities.map(p => p.map(d => d === true ? undefined : false));
 
     // Add current state to stack:
     // 1. Current grid
     // 2. The last guess, for example (13, 9): "Try person 13, date 9". null if not yet guessed.
-    const stack: [Grid, [number, number, boolean] | null][] = [[grid, null]];
+    const stack: [Grid, [number, number, boolean] | null][] = [[initialGrid, null]];
 
     // Work on stack with Depth-First-Search (DFS)
     let iterations = 0;
+    let minStack = 0;
     const startTime = new Date();
     while (stack.length > 0) {
       if (iterations % 10000 === 0) {
-        console.log('>> Iteration ', iterations, 'stack size:', stack.length, 'stack:', stack.map(i => i[1]?.toString()));
+        console.log('>> Iteration', iterations, 'minStack:', minStack, 'current stack size:', stack.length, 'stack:', stack.map(i => i[1]?.toString()));
+        minStack = 10000;
       }
+      if (stack.length < minStack) {
+        minStack = stack.length;
+      }
+
       iterations += 1;
 
       // 1. Pop state and calculate next guess
@@ -43,6 +59,7 @@ export class ScheduleService {
       const currentGrid = item![0];
       const lastGuess = item![1];
       const possibleGuesses = this.calculateGuesses(currentGrid);
+      // console.log('Calculated', possibleGuesses.length, 'possibleGuesses');
 
       let nextGuess;
       if (lastGuess === null) {
@@ -56,10 +73,11 @@ export class ScheduleService {
         }
         nextGuess = possibleGuesses[lastGuessIdx + 1];
 
+        // TODO remove - only one field is added anyway, so it should already continue above
         // Important part: If one cell can't hold true OR false, don't try any others.
         // It means that this branch can not be the solution!
-        if (lastGuess[0] !== nextGuess[0] && lastGuess[1] !== nextGuess[1]) {
-          // console.log('All possibilities tried for one cell, branch can not be satisfied.');
+        if (lastGuess[0] !== nextGuess[0] || lastGuess[1] !== nextGuess[1]) {
+          console.log('All possibilities tried for one cell, branch can not be satisfied.');
           continue;
         }
       }
@@ -103,10 +121,13 @@ export class ScheduleService {
 
     // Sort guesses by score and only return coordinates
     const sortedGuesses: [number, number, boolean][] = [];
-    guesses.sort((c1, c2) => c1[2] - c2[2])
+    guesses.sort((c1, c2) => c2[2] - c1[2])
     .map(c => [c[0], c[1]]).forEach(guess => {
-      sortedGuesses.push([guess[0], guess[1], true]);
-      sortedGuesses.push([guess[0], guess[1], false]);
+      // Only add one cell
+      if (sortedGuesses.length === 0) {
+        sortedGuesses.push([guess[0], guess[1], true]);
+        sortedGuesses.push([guess[0], guess[1], false]);
+      }
     });
     return sortedGuesses;
   }
@@ -114,28 +135,28 @@ export class ScheduleService {
   public static getCellScore(grid: Grid, p: number, d: number): number {
     // 1. Calculate person-index
     const totalPossible = _.sum(grid[p].map(d => d !== false ? 1 : 0));
-    // let score = 1.0 / totalPossible; // cap for this.maxMatchesPerPerson?
-    let score = -totalPossible;
+    // let score = 1.0 / totalPossible;
+    let score = -Math.min(totalPossible, this.maxMatchesPerPerson + 2);
 
-    // TODO factor in already set fields?
-    const totalTrue = _.sum(grid[p].map(d => d === true ? 1 : 0));
+    // TODO check 2. Factor in already set matches
+    // const totalTrue = _.sum(grid[p].map(d => d === true ? 1 : 0));
     // const totalUndefined = _.sum(grid[p].map(d => d === undefined ? 1 : 0));
     // score *= 1 - totalTrue / (totalTrue + totalUndefined);
-    score += totalTrue;
+    // score += totalTrue;
 
     // 2. Calculate date-index
     let dateScore = 0;
     for (let person of grid) {
       dateScore += person[d] !== false ? 1 : 0;
     }
-    // score *= 1.0 / dateScore;
+    // score *= (1.0 / dateScore);
     score -= dateScore;
 
     return score;
   }
 
   private static propagate(grid: Grid): Grid {
-    // 1. Complete days with 8 fields
+    // 1. Complete days with 8 matches - set rest to false
     for (let d = 0; d < grid[0].length; d++) {
       let dateCount = _.sum(grid.map(p => p[d] === true ? 1 : 0));
       if (dateCount === ScheduleService.MATCHES_PER_DAY) {
@@ -147,21 +168,33 @@ export class ScheduleService {
       }
     }
 
-    // 2. Remove adjacent dates
+    // 2. Complete with 8 POSSIBLE matches - they all must be true
+    for (let d = 0; d < grid[0].length; d++) {
+      let possibleDateCount = _.sum(grid.map(p => p[d] !== false ? 1 : 0));
+      if (possibleDateCount === ScheduleService.MATCHES_PER_DAY) {
+        grid.forEach(p => {
+          if (p[d] === undefined) {
+            p[d] = true;
+          }
+        });
+      }
+    }
+
+    // 3. Remove adjacent dates
     for (let p = 0; p < this.peopleCount; p++) {
       for (let d = 0; d < this.dateCount; d++) {
         if (grid[p][d] === true) {
-          if (d > 0) {
+          if (d > 0 && this.isNear(d, d - 1)) {
             grid[p][d - 1] = false;
           }
-          if (d < this.dateCount - 1) {
+          if (d < this.dateCount - 1 && this.isNear(d, d + 1)) {
             grid[p][d + 1] = false;
           }
         }
       }
     }
 
-    // 3. "Complete" players with maximum number of matches
+    // 4. "Complete" players with maximum number of matches
     for (let player of grid) {
       let matches = _.sum(player.map(d => d === true ? 1 : 0));
       if (matches > this.maxMatchesPerPerson) {
@@ -173,7 +206,38 @@ export class ScheduleService {
       }
     }
 
+    // 5. Complete players with only minimum amount of matches possible
+    for (let p = 0; p < this.peopleCount; p++) {
+      let possibleMatches = _.sum(grid[p].map(d => d !== false ? 1 : 0));
+      if (possibleMatches === this.minMatchesPerPerson[p]) {
+        for (let d = 0; d < this.dateCount; d++) {
+          if (grid[p][d] === undefined) {
+            grid[p][d] = true;
+          }
+        }
+      }
+    }
+
     return grid;
+  }
+
+  // Check if two dates are near enough
+  private static isNear(d0: number, d1: number): boolean {
+    const date0str = this.dates[d0].split('(')[0].trim();
+    const date1str = this.dates[d1].split('(')[0].trim();
+
+    /*
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const parts0 = date0str.split('.');
+    const parts1 = date0str.split('.');
+    const date0 = new Date(+('20' + parts0[2]), +parts0[1], +parts0[0]);
+    const date1 = new Date(+('20' + parts1[2]), +parts1[1], +parts1[0]);
+    const days = Math.round(Math.abs((date0 - date1) / oneDayMs));
+    */
+
+    // TODO check
+    // return date0str === date1str;
+    return true;
   }
 
   private static isValid(grid: Grid): boolean {
@@ -193,7 +257,7 @@ export class ScheduleService {
           }
         }
         if (skipCount < ScheduleService.MIN_SKIPABILITY) {
-          // console.log('Invalid: Skipability not given');
+          // console.log('Invalid: Skipability not given for d=', d);
           return false;
         }
       }
@@ -203,7 +267,7 @@ export class ScheduleService {
     for (let d = 0; d < this.dateCount; d++) {
       let possibleDateCount = _.sum(grid.map(p => p[d] !== false ? 1 : 0));
       if (possibleDateCount < this.MATCHES_PER_DAY) {
-        // console.log('Invalid: Date cannot have 8 matches, d=', d);
+        // console.log('Invalid: Date cannot have 8 matches (only ', possibleDateCount, '), d=', d);
         return false;
       }
     }
@@ -212,7 +276,8 @@ export class ScheduleService {
     for (let p = 0; p < this.peopleCount; p++) {
       for (let d = 0; d < this.dateCount; d++) {
         if (grid[p][d] === true) {
-          if ((d > 0 && grid[p][d - 1] === true) || (d < this.dateCount - 1 && grid[p][d + 1] === true)) {
+          if ((d > 0 && grid[p][d - 1] === true && this.isNear(d, d - 1))
+            || (d < this.dateCount - 1 && grid[p][d + 1] === true && this.isNear(d, d + 1))) {
             // console.log('Invalid: Adjacent matches for p=', p, 'd=', d);
             return false;
           }
@@ -229,7 +294,14 @@ export class ScheduleService {
       }
     }
 
-    // 5. TODO player has not enough matches
+    // 5. Player can not have enough matches
+    for (let p = 0; p < this.peopleCount; p++) {
+      let possibleMatches = _.sum(grid[p].map(d => d !== false ? 1 : 0));
+      if (possibleMatches < this.minMatchesPerPerson[p]) {
+        // console.log('Invalid: Not enough matches for p=', p);
+        return false;
+      }
+    }
 
     return true;
   }
