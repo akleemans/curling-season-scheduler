@@ -1,15 +1,18 @@
 import {Component} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import * as FileSaver from "file-saver";
-import {Skipability} from './skipability';
-import {State} from './state';
+import * as _ from 'lodash';
+import {CellState} from './model/cell-state';
+import {ScheduleParameters} from './model/schedule-parameters';
+import {Skipability} from './model/skipability';
+import {WorkerMessage, WorkerStatus} from './model/worker-message';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
-import {WorkerMessage, WorkerStatus} from './worker-message';
 
 enum AppState {
-  INITIAL,
-  SOLVING,
-  SOLVED
+  Initial,
+  Uploaded,
+  Solving,
+  Solved
 }
 
 @Component({
@@ -19,24 +22,27 @@ enum AppState {
 })
 export class AppComponent {
   public displayedColumns: string[] = [];
-  public readonly stateEnum = State;
+  public readonly stateEnum = CellState;
   public readonly appStateEnum = AppState;
 
   // data
-  public people: string[] = [];
-  public dates: string[] = [];
-  public schedule: State[][] = [];
+  public schedule: CellState[][] = [];
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
+  public people: string[] = [];
+  public dates: string[] = [];
 
-  public appState = AppState.INITIAL;
+  public appState = AppState.Initial;
+  public playerTotal: number[] = [];
+  public playerPossible: number[] = [];
 
   public constructor(
     private readonly dialog: MatDialog,
   ) {
   }
 
-  public prepareData(): void {
+  public prepareTableData(): void {
+    /*
     // Example data - read out real data
     for (let p = 0; p < 20; p++) {
       this.people.push('Person ' + p)
@@ -54,20 +60,19 @@ export class AppComponent {
       }
       this.availabilities.push(row);
     }
-    console.log('Generated availabilities:', this.availabilities);
-    console.log('Generated skipabilities:', this.skipabilities);
+    */
+    //console.log('Generated availabilities:', this.availabilities);
+    //console.log('Generated skipabilities:', this.skipabilities);
 
-    // TODO read out & save availability
-
-    // Prepare table
+    this.playerPossible = this.availabilities.map(p => _.sum(p.map(d => d ? 1 : 0)));
     this.displayedColumns = ['name'].concat(this.dates);
   }
 
   public generateSchedule(): void {
-    this.appState = AppState.SOLVING;
+    this.appState = AppState.Solving;
 
     // Create a new worker
-    const worker = new Worker(new URL('./main.worker', import.meta.url), {type: 'module'});
+    const worker = new Worker(new URL('./model/main.worker', import.meta.url), {type: 'module'});
     worker.onmessage = event => {
       console.log(`MainComponent got worker message: ${event.data}!`);
       const message: WorkerMessage = event.data;
@@ -78,11 +83,12 @@ export class AppComponent {
         case WorkerStatus.SOLVED:
           console.log('Solved!', message.content);
           this.schedule = JSON.parse(message.content);
-          this.appState = AppState.SOLVED;
+          this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
+          this.appState = AppState.Solved;
           worker.terminate();
           break;
         case WorkerStatus.UNSOLVABLE:
-          this.appState = AppState.SOLVED;
+          this.appState = AppState.Solved;
           console.log('Schedule not solvable!');
           worker.terminate();
           break;
@@ -107,13 +113,17 @@ export class AppComponent {
   public loadData(): void {
     const dialogRef = this.dialog.open(UploadDialogComponent);
 
-    dialogRef.afterClosed().subscribe(async (data: any) => {
+    dialogRef.afterClosed().subscribe(async (data: ScheduleParameters) => {
       if (data) {
         console.log('Loaded data:', data);
+        this.appState = AppState.Uploaded;
+        this.availabilities = data.availabilities;
+        this.skipabilities = data.skipabilities;
+        this.people = data.people;
+        this.dates = data.dates;
 
-        // TODO parse CSV
-
-        this.prepareData();
+        console.log('Got people:', this.people, 'dates:', this.dates);
+        this.prepareTableData();
       }
     });
   }

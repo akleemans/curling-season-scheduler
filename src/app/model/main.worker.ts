@@ -6,7 +6,7 @@ import {WorkerMessage, WorkerStatus} from './worker-message';
 addEventListener('message', event => {
   const availabilities = event.data.availabilities;
   const skipabilities = event.data.skipabilities;
-  console.log('Worker got schedule:', skipabilities, availabilities);
+  // console.log('Worker got schedule:', skipabilities, availabilities);
   postMessage(new WorkerMessage(WorkerStatus.SOLVING, 'Start to solve...'));
 
   let status = WorkerStatus.SOLVED;

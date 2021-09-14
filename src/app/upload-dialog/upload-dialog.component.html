@@ -1,10 +1,36 @@
 <h1 mat-dialog-title>Upload doodle CSV</h1>
 <div mat-dialog-content>
-  <input type="file" #fileInput (change)="onFileSelected(fileInput.files)"/>
-</div>
-<div mat-dialog-actions style="justify-content: flex-end;">
-  <button mat-stroked-button (click)="dialogRef.close()" color="warn">Cancel</button>
-  <button mat-stroked-button (click)="upload()" color="primary">
-    Load
-  </button>
+  <div *ngIf="uploadState === uploadStateEnum.Initial">
+    <ol>
+      <li>Export Doodle as Excel</li>
+      <li>Open and enter "Skip-skill": Open the CSV and after each name, enter a number in brackets,
+        indicating the skip level:
+        <ul>
+          <li>(2) Yes</li>
+          <li>(1) If needed</li>
+          <li>(0) No</li>
+        </ul>
+        Example:
+        <pre>
+  Max Muster (0)
+  Hans Hagen (2)</pre>
+      </li>
+      <li>Click "Save as", choose "CSV UTF-8"</li>
+      <li>Upload .csv-file here:</li>
+    </ol>
+    <input type="file" #fileInput (change)="onFileSelected(fileInput.files)"/>
+  </div>
+  <mat-spinner *ngIf="uploadState === uploadStateEnum.Uploading"></mat-spinner>
+  <div *ngIf="uploadState === uploadStateEnum.Uploaded">
+    <h3>Upload successful</h3>
+    <p>
+      You can now load the data to start scheduling.
+    </p>
+  </div>
+  <div mat-dialog-actions style="justify-content: flex-end;">
+    <button mat-stroked-button (click)="dialogRef.close()" color="warn">Cancel</button>
+    <button mat-stroked-button [matDialogClose]="scheduleParameters" color="primary">
+      Load
+    </button>
+  </div>
 </div>

@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
+import {CellState} from './cell-state';
 import {Skipability} from './skipability';
-import {State} from './state';
 
 type Grid = (boolean | undefined)[][];
 
 export class ScheduleService {
-  private static readonly MATCHES_PER_DAY = 6; // TODO 8
+  private static readonly MATCHES_PER_DAY = 8;
   private static readonly MIN_SKIPABILITY = 3;
 
   private static peopleCount: number = 0;
@@ -13,7 +13,7 @@ export class ScheduleService {
   private static maxMatchesPerPerson: number = 0;
   private static skipabilities: Skipability[] = [];
 
-  public static schedule(availabilities: Grid, skipabilities: Skipability[]): State[][] {
+  public static schedule(availabilities: Grid, skipabilities: Skipability[]): CellState[][] {
     this.skipabilities = skipabilities;
     this.peopleCount = availabilities.length;
     this.dateCount = availabilities[0].length;
@@ -102,9 +102,13 @@ export class ScheduleService {
     // console.log('Calculated guesses:', JSON.stringify(guesses), 'grid:', JSON.stringify(grid));
 
     // Sort guesses by score and only return coordinates
-    const best = guesses.sort((c1, c2) => c1[2] - c2[2])
-    .map(c => [c[0], c[1]])[0];
-    return [[best[0], best[1], true], [best[0], best[1], false]]
+    const sortedGuesses: [number, number, boolean][] = [];
+    guesses.sort((c1, c2) => c1[2] - c2[2])
+    .map(c => [c[0], c[1]]).forEach(guess => {
+      sortedGuesses.push([guess[0], guess[1], true]);
+      sortedGuesses.push([guess[0], guess[1], false]);
+    });
+    return sortedGuesses;
   }
 
   public static getCellScore(grid: Grid, p: number, d: number): number {
@@ -234,8 +238,8 @@ export class ScheduleService {
     return grid.every(p => p.every(d => d !== undefined));
   }
 
-  private static placeTeams(grid: Grid): State[][] {
+  private static placeTeams(grid: Grid): CellState[][] {
     // TODO
-    return grid.map(p => p.map(d => d === true ? State.TeamOne : State.Unplanned));
+    return grid.map(p => p.map(d => d === true ? CellState.TeamOne : CellState.Unplanned));
   }
 }
