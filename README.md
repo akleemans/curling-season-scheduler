@@ -2,13 +2,10 @@
 
 Schedule a season.
 
-## Deployment to Azure
+## Deployment to Github pages
 
 Deploy the app to azure:
 
     npm run build
-    cd dist/season-scheduler
 
-    az login
-    az account set -s <subscriptionId>
-    az webapp up --location westeurope --name season-scheduler --html --sku FREE --resource-group sample-web-apps-rg
+This will update the `docs` folder with the latest build. Publishing the site is done by Github.
