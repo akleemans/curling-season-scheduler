@@ -44,9 +44,9 @@
   </div>
   <div *ngIf="appState >= appStateEnum.Solving">
     <h2>Solution search</h2>
-    <mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
+    <mat-spinner diameter="30" *ngIf="appState === appStateEnum.Solving"></mat-spinner>
     <div *ngIf="schedule.length > 0">
-      Current best solution
+      Current best solution:
       <ul>
         <li>Count: {{solutionCount}}</li>
         <li>Found at: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
