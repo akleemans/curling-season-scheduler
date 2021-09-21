@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { UploadDialogComponent } from './upload-dialog.component';
 
 describe('UploadDialogComponent', () => {
@@ -9,8 +8,7 @@ describe('UploadDialogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ UploadDialogComponent ]
-    })
-    .compileComponents();
+    }).compileComponents();
   });
 
   beforeEach(() => {

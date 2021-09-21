@@ -1,6 +1,7 @@
 export class WorkerMessage {
   public constructor(
     public status: WorkerStatus,
+    public score: number,
     public content: string) {
   }
 }

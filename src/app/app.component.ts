@@ -27,6 +27,8 @@ export class AppComponent {
 
   // data
   public schedule: CellState[][] = [];
+  public currentScore: number = 0;
+  public lastSolutionTime: Date = new Date();
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
   public people: string[] = [];
@@ -35,6 +37,8 @@ export class AppComponent {
   public appState = AppState.Initial;
   public playerTotal: number[] = [];
   public playerPossible: number[] = [];
+
+  public worker?: Worker;
 
   public constructor(
     private readonly dialog: MatDialog,
@@ -72,25 +76,29 @@ export class AppComponent {
     this.appState = AppState.Solving;
 
     // Create a new worker
-    const worker = new Worker(new URL('./model/main.worker', import.meta.url), {type: 'module'});
-    worker.onmessage = event => {
+    this.worker = new Worker(new URL('./model/main.worker', import.meta.url), {type: 'module'});
+    this.worker.onmessage = event => {
       console.log(`MainComponent got worker message: ${event.data}!`);
       const message: WorkerMessage = event.data;
       switch (message.status) {
         case WorkerStatus.SOLVING:
           console.log('Solving:', message.content);
+          this.currentScore = message.score;
+          this.lastSolutionTime = new Date();
+          this.schedule = JSON.parse(message.content);
+          this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
           break;
         case WorkerStatus.SOLVED:
           console.log('Solved!', message.content);
           this.schedule = JSON.parse(message.content);
           this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
           this.appState = AppState.Solved;
-          worker.terminate();
+          this.worker!.terminate();
           break;
         case WorkerStatus.UNSOLVABLE:
           this.appState = AppState.Solved;
           console.log('Schedule not solvable!');
-          worker.terminate();
+          this.worker!.terminate();
           break;
       }
     };
@@ -99,8 +107,7 @@ export class AppComponent {
       skipabilities: this.skipabilities,
       dates: this.dates
     };
-    console.log('Starting worker!', worker);
-    worker.postMessage(data);
+    this.worker!.postMessage(data);
   }
 
   public downloadData(): void {
@@ -109,6 +116,12 @@ export class AppComponent {
     // TODO check if mimetype should be text/csv;charset=utf-8
     const blob = new Blob(data, {type: 'text/csv'});
     FileSaver.saveAs(blob, 'schedule.csv');
+  }
+
+  public stopSearch(): void {
+    this.appState = AppState.Solved;
+    console.log('Schedule not solvable!');
+    this.worker!.terminate();
   }
 
   public loadData(): void {

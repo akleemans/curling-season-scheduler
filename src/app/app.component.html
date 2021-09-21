@@ -17,7 +17,15 @@
       3. Export
     </button>
   </div>
-  <mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
+  <div *ngIf="appState >= appStateEnum.Uploaded">
+    <h3>Solution search</h3>
+    <mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
+    <p *ngIf="schedule.length > 0">
+      Current solution found at: {{lastSolutionTime | date : 'HH:mm:ss' }}<br>
+      Current solution score: {{currentScore}}
+    </p>
+    <button mat-stroked-button (click)="stopSearch()"></button>
+  </div>
 </div>
 
 <table *ngIf="appState === appStateEnum.Solved">
