@@ -89,16 +89,9 @@ export class AppComponent {
           this.schedule = JSON.parse(message.content);
           this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
           break;
-        case WorkerStatus.SOLVED:
-          console.log('Solved!', message.content);
-          this.schedule = JSON.parse(message.content);
-          this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
+        case WorkerStatus.FINISHED:
+          console.log('Finished!', message.content);
           this.appState = AppState.Solved;
-          this.worker!.terminate();
-          break;
-        case WorkerStatus.UNSOLVABLE:
-          this.appState = AppState.Solved;
-          console.log('Schedule not solvable!');
           this.worker!.terminate();
           break;
       }

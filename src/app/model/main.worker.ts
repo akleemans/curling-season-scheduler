@@ -9,12 +9,6 @@ const sendUpdate = (score: number, grid: CellState[][]) => {
 };
 
 addEventListener('message', event => {
-  let status = WorkerStatus.SOLVED;
-  let grid;
-  try {
-    grid = ScheduleService.schedule(event.data.availabilities, event.data.skipabilities, event.data.dates, sendUpdate);
-  } catch (e) {
-    status = WorkerStatus.UNSOLVABLE;
-  }
-  postMessage(new WorkerMessage(status, 0, ''));
+  ScheduleService.schedule(event.data.availabilities, event.data.skipabilities, event.data.dates, sendUpdate);
+  postMessage(new WorkerMessage(WorkerStatus.FINISHED, 0, ''));
 });

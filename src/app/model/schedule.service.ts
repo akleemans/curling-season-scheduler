@@ -20,7 +20,10 @@ export class ScheduleService {
   private static lowestScore: number = Number.MAX_VALUE;
   private static sendUpdate: UpdateFunction;
 
-  public static schedule(availabilities: Grid, skipabilities: Skipability[], dates: string[], sendUpdate: UpdateFunction): CellState[][] {
+  /*
+  Main solving method. Here the search, constraint propagation and checking for (better) solutions will be done.
+   */
+  public static schedule(availabilities: Grid, skipabilities: Skipability[], dates: string[], sendUpdate: UpdateFunction): void {
     this.skipabilities = skipabilities;
     this.dates = dates;
     this.sendUpdate = sendUpdate;
@@ -45,7 +48,6 @@ export class ScheduleService {
     // Work on stack with Depth-First-Search (DFS)
     let iterations = 0;
     let minStack = 0;
-    const startTime = new Date();
     while (stack.length > 0) {
       if (iterations % 10000 === 0) {
         console.log('>> Iteration', iterations, 'minStack:', minStack, 'current stack size:', stack.length, 'stack:', stack.map(i => i[1]?.toString()));
@@ -109,11 +111,11 @@ export class ScheduleService {
         }
       }
     }
-
-    // If not successful, throw exception or something
-    throw new Error('No solution found');
   }
 
+  /*
+  Calculates the single next cell to continue guessing.
+   */
   private static calculateGuesses(grid: Grid): [number, number, boolean][] {
     // Calculate [p, d, score] per cell
     const guesses: [number, number, number][] = [];
@@ -141,6 +143,12 @@ export class ScheduleService {
     return sortedGuesses;
   }
 
+  /*
+  Heuristics function. Simply weighs each cell in relation to
+  1. The amount of possible other dates the player has
+  2. The amount of possible other players the date has.
+  The more other cells are available, the lower is the score.
+   */
   public static getCellScore(grid: Grid, p: number, d: number): number {
     // 1. Calculate person-index
     const totalPossible = _.sum(grid[p].map(d => d !== false ? 1 : 0));
@@ -156,6 +164,9 @@ export class ScheduleService {
     return score;
   }
 
+  /*
+  Propagate-step of the constraint search. This "does" all logically subsequent steps when a move is done.
+   */
   private static propagate(grid: Grid): Grid {
     // 1. Complete days with 8 matches - set rest to false
     for (let d = 0; d < grid[0].length; d++) {
@@ -222,7 +233,10 @@ export class ScheduleService {
     return grid;
   }
 
-  // Check if two dates are near enough
+  /*
+  Checks if two dates are too near. Because solutions seem to exist with the current setup,
+  no adjacent dates are allowed at all.
+   */
   private static isNear(d0: number, d1: number): boolean {
     const date0str = this.dates[d0].split('(')[0].trim();
     const date1str = this.dates[d1].split('(')[0].trim();
@@ -232,6 +246,9 @@ export class ScheduleService {
     return true;
   }
 
+  /*
+  Checks if a grid is still valid. This also is used for checking if the grid is solved (if it is also filled).
+   */
   private static isValid(grid: Grid): boolean {
     // 1. <= 8 players per date (and with 8 players a given skipability)
     for (let d = 0; d < this.dateCount; d++) {
@@ -298,11 +315,18 @@ export class ScheduleService {
     return true;
   }
 
+  /*
+  Checks if the grid is completely filled.
+  This means every cell has the value 'true' or 'false', and no cell has 'undefined' anymore.
+   */
   public static isFilled(grid: Grid): boolean {
     return grid.every(p => p.every(d => d !== undefined));
   }
 
-  // Calculate score
+  /*
+  Calculates the score of a solution using the "soft" constraints".
+  It will return higher scores for worse solutions. 0 would be an ideal score.
+   */
   protected static getScore(grid: Grid): number {
     // 1. Not too many outliers
     const minMatches = Math.floor(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.peopleCount);
@@ -342,6 +366,10 @@ export class ScheduleService {
     return matchCountOutliers + matchesInSameWeek + distributionScore;
   }
 
+  /*
+  Checks if two dates, as strings ('21.09.2021'), are in the same week.
+  Even though the "American" week (So, Mo, ..., Sa) is used, this still holds.
+   */
   public static inSameWeek(d0: string, d1: string): boolean {
     const oneDayMs = 24 * 60 * 60 * 1000;
     const parts0 = d0.split('.');
@@ -353,16 +381,23 @@ export class ScheduleService {
       (date1.valueOf() - date1.getDay() * oneDayMs);
   }
 
+  /*
+  Calculate how well the matches are distributed for every single player.
+  This basically checks again uniform distribution and counts the deviation from it.
+   */
   public static getDistributionScore(data: number[], maxValue: number): number {
     const distance = maxValue / (data.length - 1);
     let error = 0;
     for (let i = 0; i < data.length - 1; i++) {
-      // TODO use ** 2 ?
       error += Math.abs(Math.abs(data[i] - data[i + 1]) - distance);
     }
     return error / (data.length - 1);
   }
 
+  /*
+  After having a solution, the 8 matches on a single day are distributed into two teams.
+  Both teams should have someone with a Skip skill.
+   */
   private static placeTeams(grid: Grid): CellState[][] {
     // TODO
     return grid.map(p => p.map(d => d === true ? CellState.TeamOne : CellState.Unplanned));
