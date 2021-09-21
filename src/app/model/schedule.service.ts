@@ -17,7 +17,7 @@ export class ScheduleService {
   private static dates: string[] = [];
   private static minMatchesPerPerson: number[] = [];
 
-  private static bestMinimumScore: number = 0;
+  private static lowestScore: number = Number.MAX_VALUE;
   private static sendUpdate: UpdateFunction;
 
   public static schedule(availabilities: Grid, skipabilities: Skipability[], dates: string[], sendUpdate: UpdateFunction): CellState[][] {
@@ -99,8 +99,8 @@ export class ScheduleService {
           // const diff = Math.abs((new Date()).getMilliseconds() - startTime.getMilliseconds()) / 1000.0;
           // console.log('Solved succesfully in', diff, 's (', iterations, 'iterations):', currentGrid);
           const currentScore = this.getScore(currentGrid)
-          if (this.bestMinimumScore > currentScore) {
-            this.bestMinimumScore = currentScore;
+          if (this.lowestScore > currentScore) {
+            this.lowestScore = currentScore;
             this.sendUpdate(currentScore, ScheduleService.placeTeams(currentGrid));
           }
         } else {
@@ -304,20 +304,21 @@ export class ScheduleService {
 
   // Calculate score
   protected static getScore(grid: Grid): number {
-    let score = 0;
     // 1. Not too many outliers
     const minMatches = Math.floor(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.peopleCount);
     const maxMatches = minMatches + 1;
-    score += _.sum(grid.map(p => {
+    const matchCountOutliers = _.sum(grid.map(p => {
       const score = _.sum(p.map(d => d ? 1 : 0));
       return (score === minMatches || score === maxMatches) ? 1 : 0;
     }));
 
     // 2. Not too many matches in same week
-    score += _.sum(grid.map(player => {
+    const matchesInSameWeek = _.sum(grid.map(player => {
       let s = 0;
       for (let i = 0; i < player.length - 2; i++) {
-        if (player[i] && player[i + 2] && this.inSameWeek(this.dates[i], this.dates[i + 2])) {
+        const d0 = this.dates[i].split('(')[0].trim();
+        const d1 = this.dates[i + 2].split('(')[0].trim();
+        if (player[i] && player[i + 2] && this.inSameWeek(d0, d1)) {
           s += 1;
         }
       }
@@ -325,7 +326,8 @@ export class ScheduleService {
     }));
 
     // 3. Evenly distributed matches
-    score += _.sum(grid.map(p => {
+    const distributionModifier = 1 / 4;
+    const distributionScore = _.sum(grid.map(p => {
       let data: number[] = [];
       for (let i = 0; i < p.length; i++) {
         if (p[i]) {
@@ -333,9 +335,11 @@ export class ScheduleService {
         }
       }
       return this.getDistributionScore(data, this.dateCount);
-    }));
+    })) * distributionModifier;
 
-    return score;
+    // console.log('Solution score:', matchCountOutliers, '/', matchesInSameWeek, '/', distributionScore);
+
+    return matchCountOutliers + matchesInSameWeek + distributionScore;
   }
 
   public static inSameWeek(d0: string, d1: string): boolean {

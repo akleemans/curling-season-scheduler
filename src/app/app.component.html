@@ -1,5 +1,30 @@
 <div class="container">
   <h2>Season scheduler</h2>
+  <mat-accordion>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          Constraints
+        </mat-panel-title>
+        <mat-panel-description></mat-panel-description>
+      </mat-expansion-panel-header>
+      <p>Hard constraints:</p>
+      <ul>
+        <li>8 matches per day</li>
+        <li>5 matches per player if possible (else as many as possible)</li>
+        <li>No 2 matches on same day</li>
+        <li>Skip skill >=3 per day</li>
+      </ul>
+
+      <p>Soft constraints (this will be optimized for):</p>
+      <ul>
+        <li>No matches in same week</li>
+        <li>Matches evenly distributed out over season</li>
+        <li>Matches evenly distributed over players</li>
+      </ul>
+    </mat-expansion-panel>
+  </mat-accordion>
+
   <div class="button-bar">
     <button (click)="loadData()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Initial">
@@ -9,7 +34,7 @@
     <button (click)="generateSchedule()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Uploaded">
       <mat-icon>auto_fix_high</mat-icon>
-      2. Generate schedule
+      2. Solution search
     </button>
     <button (click)="downloadData()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Solved">
@@ -17,14 +42,21 @@
       3. Export
     </button>
   </div>
-  <div *ngIf="appState >= appStateEnum.Uploaded">
-    <h3>Solution search</h3>
+  <div *ngIf="appState >= appStateEnum.Solving">
+    <h2>Solution search</h2>
     <mat-spinner *ngIf="appState === appStateEnum.Solving"></mat-spinner>
-    <p *ngIf="schedule.length > 0">
-      Current solution found at: {{lastSolutionTime | date : 'HH:mm:ss' }}<br>
-      Current solution score: {{currentScore}}
-    </p>
-    <button mat-stroked-button (click)="stopSearch()"></button>
+    <div *ngIf="schedule.length > 0">
+      Current best solution
+      <ul>
+        <li>Count: {{solutionCount}}</li>
+        <li>Found at: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
+        <li>Score: {{currentScore}}</li>
+      </ul>
+    </div>
+    <button mat-stroked-button (click)="stopSearch()"
+            [disabled]="appState !== appStateEnum.Solving">
+      Stop search & show solution
+    </button>
   </div>
 </div>
 

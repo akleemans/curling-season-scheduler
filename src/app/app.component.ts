@@ -29,6 +29,7 @@ export class AppComponent {
   public schedule: CellState[][] = [];
   public currentScore: number = 0;
   public lastSolutionTime: Date = new Date();
+  public solutionCount: number = 0;
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
   public people: string[] = [];
@@ -78,13 +79,13 @@ export class AppComponent {
     // Create a new worker
     this.worker = new Worker(new URL('./model/main.worker', import.meta.url), {type: 'module'});
     this.worker.onmessage = event => {
-      console.log(`MainComponent got worker message: ${event.data}!`);
       const message: WorkerMessage = event.data;
+      console.log(`MainComponent got worker message: ${message.status}!`);
       switch (message.status) {
         case WorkerStatus.SOLVING:
-          console.log('Solving:', message.content);
           this.currentScore = message.score;
           this.lastSolutionTime = new Date();
+          this.solutionCount += 1;
           this.schedule = JSON.parse(message.content);
           this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
           break;
