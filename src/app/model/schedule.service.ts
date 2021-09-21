@@ -227,16 +227,7 @@ export class ScheduleService {
     const date0str = this.dates[d0].split('(')[0].trim();
     const date1str = this.dates[d1].split('(')[0].trim();
 
-    /*
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    const parts0 = date0str.split('.');
-    const parts1 = date0str.split('.');
-    const date0 = new Date(+('20' + parts0[2]), +parts0[1], +parts0[0]);
-    const date1 = new Date(+('20' + parts1[2]), +parts1[1], +parts1[0]);
-    const days = Math.round(Math.abs((date0 - date1) / oneDayMs));
-    */
-
-    // TODO check
+    // Currently, just return always true to avoid any dates beside each other
     // return date0str === date1str;
     return true;
   }
@@ -307,7 +298,7 @@ export class ScheduleService {
     return true;
   }
 
-  protected static isFilled(grid: Grid): boolean {
+  public static isFilled(grid: Grid): boolean {
     return grid.every(p => p.every(d => d !== undefined));
   }
 
@@ -351,19 +342,19 @@ export class ScheduleService {
     const oneDayMs = 24 * 60 * 60 * 1000;
     const parts0 = d0.split('.');
     const parts1 = d1.split('.');
-    const date0 = new Date(+parts0[2], +parts0[1], +parts0[0]);
-    const date1 = new Date(+parts1[2], +parts1[1], +parts1[0]);
+    const date0 = new Date(+parts0[2], +parts0[1] - 1, +parts0[0]);
+    const date1 = new Date(+parts1[2], +parts1[1] - 1, +parts1[0]);
 
-    return (date0.getMilliseconds() - date0.getDay() * oneDayMs) ===
-      (date1.getMilliseconds() - date1.getDay() * oneDayMs);
+    return (date0.valueOf() - date0.getDay() * oneDayMs) ===
+      (date1.valueOf() - date1.getDay() * oneDayMs);
   }
 
   public static getDistributionScore(data: number[], maxValue: number): number {
-    const distance = maxValue / data.length
+    const distance = maxValue / (data.length - 1);
     let error = 0;
     for (let i = 0; i < data.length - 1; i++) {
       // TODO use ** 2 ?
-      error += Math.abs(Math.abs(data[1] - data[0]) - distance);
+      error += Math.abs(Math.abs(data[i] - data[i + 1]) - distance);
     }
     return error / (data.length - 1);
   }

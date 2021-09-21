@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UploadDialogComponent } from './upload-dialog.component';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatButtonModule} from '@angular/material/button';
+import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {UploadDialogComponent} from './upload-dialog.component';
 
 describe('UploadDialogComponent', () => {
   let component: UploadDialogComponent;
@@ -7,7 +9,17 @@ describe('UploadDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UploadDialogComponent ]
+      declarations: [
+        UploadDialogComponent
+      ],
+      imports: [
+        MatDialogModule,
+        MatButtonModule,
+      ],
+      providers: [
+        {provide: MatDialogRef, useValue: {}},
+        // {provide: MAT_DIALOG_DATA, useValue: dialogData}
+      ]
     }).compileComponents();
   });
 

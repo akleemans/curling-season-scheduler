@@ -1,4 +1,10 @@
 import {TestBed} from '@angular/core/testing';
+import {FormsModule} from '@angular/forms';
+import {MatButtonModule} from '@angular/material/button';
+import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatIconModule} from '@angular/material/icon';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {AppComponent} from './app.component';
 
 describe('AppComponent', () => {
@@ -7,6 +13,18 @@ describe('AppComponent', () => {
       declarations: [
         AppComponent
       ],
+      imports: [
+        MatDialogModule,
+        MatIconModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        FormsModule,
+        NoopAnimationsModule,
+      ],
+      providers: [
+        {provide: MatDialogRef, useValue: {}},
+        // {provide: MAT_DIALOG_DATA, useValue: dialogData}
+      ]
     }).compileComponents();
   });
 
