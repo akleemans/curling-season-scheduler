@@ -32,7 +32,7 @@ export class AppComponent {
   public solutionCount: number = 0;
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
-  public people: string[] = [];
+  public players: string[] = [];
   public dates: string[] = [];
 
   public appState = AppState.Initial;
@@ -87,7 +87,7 @@ export class AppComponent {
           this.lastSolutionTime = new Date();
           this.solutionCount += 1;
           this.schedule = JSON.parse(message.content);
-          this.playerTotal = this.schedule.map(p => _.sum(p.map(d => d <= 1 ? 1 : 0)));
+          this.playerTotal = this.schedule.map(p => _.sum(p.map(d => (d === CellState.TeamOne || d === CellState.TeamTwo) ? 1 : 0)));
           break;
         case WorkerStatus.FINISHED:
           console.log('Finished!', message.content);
@@ -105,8 +105,11 @@ export class AppComponent {
   }
 
   public downloadData(): void {
-    // TODO implement CSV export
-    const data = ['blubb,foo,bar\n', 'foo,blubber,bar'];
+    // Prepare data
+    const data: string[] = []
+    for (let p = 0; p < this.availabilities.length; p++) {
+      data.push(this.players[p] + ',' + this.schedule[p].map(d => d.toString()).join(',') + '\n');
+    }
     // TODO check if mimetype should be text/csv;charset=utf-8
     const blob = new Blob(data, {type: 'text/csv'});
     FileSaver.saveAs(blob, 'schedule.csv');
@@ -127,10 +130,10 @@ export class AppComponent {
         this.appState = AppState.Uploaded;
         this.availabilities = data.availabilities;
         this.skipabilities = data.skipabilities;
-        this.people = data.people;
+        this.players = data.people;
         this.dates = data.dates;
 
-        console.log('Got people:', this.people, 'dates:', this.dates);
+        console.log('Got people:', this.players, 'dates:', this.dates);
         this.prepareTableData();
       }
     });

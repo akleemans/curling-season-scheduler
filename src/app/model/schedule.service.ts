@@ -10,11 +10,12 @@ export class ScheduleService {
   private static readonly MIN_SKIPABILITY = 3;
   private static readonly MIN_MATCHES_PER_PERSON = 5;
 
-  private static peopleCount: number = 0;
+  private static playerCount: number = 0;
   private static dateCount: number = 0;
   private static maxMatchesPerPerson: number = 0;
   private static skipabilities: Skipability[] = [];
   private static dates: string[] = [];
+  private static availabilities: Grid = [];
   private static minMatchesPerPerson: number[] = [];
 
   private static lowestScore: number = Number.MAX_VALUE;
@@ -27,10 +28,11 @@ export class ScheduleService {
     this.skipabilities = skipabilities;
     this.dates = dates;
     this.sendUpdate = sendUpdate;
-    this.peopleCount = availabilities.length;
+    this.availabilities = availabilities;
+    this.playerCount = availabilities.length;
     this.dateCount = availabilities[0].length;
-    console.log('peopleCount:', this.peopleCount, 'dateCount', this.dateCount);
-    this.maxMatchesPerPerson = Math.round(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.peopleCount) + 1;
+    console.log('peopleCount:', this.playerCount, 'dateCount', this.dateCount);
+    this.maxMatchesPerPerson = Math.round(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.playerCount) + 1;
     console.log('Max matches per person:', this.maxMatchesPerPerson);
     // Calculate min matches per person
     for (let p of availabilities) {
@@ -64,7 +66,6 @@ export class ScheduleService {
       const currentGrid = item![0];
       const lastGuess = item![1];
       const possibleGuesses = this.calculateGuesses(currentGrid);
-      // console.log('Calculated', possibleGuesses.length, 'possibleGuesses');
 
       let nextGuess;
       if (lastGuess === null) {
@@ -77,16 +78,6 @@ export class ScheduleService {
           continue;
         }
         nextGuess = possibleGuesses[lastGuessIdx + 1];
-
-        // TODO remove - only one field is added anyway, so it should already continue above
-        /*
-        // Important part: If one cell can't hold true OR false, don't try any others.
-        // It means that this branch can not be the solution!
-        if (lastGuess[0] !== nextGuess[0] || lastGuess[1] !== nextGuess[1]) {
-          console.log('All possibilities tried for one cell, branch can not be satisfied.');
-          continue;
-        }
-        */
       }
 
       // 2. Do the guess & add to stack
@@ -119,7 +110,7 @@ export class ScheduleService {
   private static calculateGuesses(grid: Grid): [number, number, boolean][] {
     // Calculate [p, d, score] per cell
     const guesses: [number, number, number][] = [];
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       for (let d = 0; d < this.dateCount; d++) {
         // If not yet filled, we can guess
         if (grid[p][d] === undefined) {
@@ -193,7 +184,7 @@ export class ScheduleService {
     }
 
     // 3. Remove adjacent dates
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       for (let d = 0; d < this.dateCount; d++) {
         if (grid[p][d] === true) {
           if (d > 0 && this.isNear(d, d - 1)) {
@@ -219,7 +210,7 @@ export class ScheduleService {
     }
 
     // 5. Complete players with only minimum amount of matches possible
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       let possibleMatches = _.sum(grid[p].map(d => d !== false ? 1 : 0));
       if (possibleMatches === this.minMatchesPerPerson[p]) {
         for (let d = 0; d < this.dateCount; d++) {
@@ -259,7 +250,7 @@ export class ScheduleService {
       } else if (dateCount === ScheduleService.MATCHES_PER_DAY) {
         // Check skipability
         let skipCount = 0;
-        for (let p = 0; p < this.peopleCount; p++) {
+        for (let p = 0; p < this.playerCount; p++) {
           // Count skipability for the people playing
           if (grid[p][d] === true) {
             skipCount += this.skipabilities[p];
@@ -282,7 +273,7 @@ export class ScheduleService {
     }
 
     // 3. No adjacent dates
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       for (let d = 0; d < this.dateCount; d++) {
         if (grid[p][d] === true) {
           if ((d > 0 && grid[p][d - 1] === true && this.isNear(d, d - 1))
@@ -295,7 +286,7 @@ export class ScheduleService {
     }
 
     // 4. No player has more than maximum amount of matches
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       let matches = _.sum(grid[p].map(d => d === true ? 1 : 0));
       if (matches > this.maxMatchesPerPerson) {
         // console.log('Invalid: Too many matches for p=', p);
@@ -304,7 +295,7 @@ export class ScheduleService {
     }
 
     // 5. Player can not have enough matches
-    for (let p = 0; p < this.peopleCount; p++) {
+    for (let p = 0; p < this.playerCount; p++) {
       let possibleMatches = _.sum(grid[p].map(d => d !== false ? 1 : 0));
       if (possibleMatches < this.minMatchesPerPerson[p]) {
         // console.log('Invalid: Not enough matches for p=', p);
@@ -329,7 +320,7 @@ export class ScheduleService {
    */
   protected static getScore(grid: Grid): number {
     // 1. Not too many outliers
-    const minMatches = Math.floor(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.peopleCount);
+    const minMatches = Math.floor(this.dateCount * ScheduleService.MATCHES_PER_DAY / this.playerCount);
     const maxMatches = minMatches + 1;
     const matchCountOutliers = _.sum(grid.map(p => {
       const score = _.sum(p.map(d => d ? 1 : 0));
@@ -399,7 +390,35 @@ export class ScheduleService {
   Both teams should have someone with a Skip skill.
    */
   private static placeTeams(grid: Grid): CellState[][] {
-    // TODO
-    return grid.map(p => p.map(d => d === true ? CellState.TeamOne : CellState.Unplanned));
+    const finalGrid: CellState[][] = grid.map(p => p.map(_ => CellState.Unplanned));
+    for (let d = 0; d < this.dateCount; d++) {
+      // Set teams by sorting players by skipability
+      const playerIndexes: number[] = [];
+      for (let p = 0; p < this.playerCount; p++) {
+        if (grid[p][d]) {
+          playerIndexes.push(p);
+        }
+      }
+      playerIndexes.sort((a: number, b: number) => {
+        const diff = this.skipabilities[a] - this.skipabilities[b];
+        return diff === 0 ? Math.random() - 0.5 : diff;
+      });
+
+      let currentState = CellState.TeamOne;
+      playerIndexes.forEach(p => {
+        finalGrid[p][d] = currentState;
+        currentState = (currentState === CellState.TeamOne ? CellState.TeamTwo : CellState.TeamOne);
+      });
+
+      // Set substitutes
+      for (let p = 0; p < this.playerCount; p++) {
+        if (finalGrid[p][d] === CellState.Unplanned
+          && this.availabilities[p][d]) {
+          finalGrid[p][d] = CellState.Substitute;
+        }
+      }
+    }
+
+    return finalGrid;
   }
 }

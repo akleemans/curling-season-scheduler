@@ -17,14 +17,17 @@ mat-icon {
   margin-top: 10px;
 }
 
-.team-one {
-  background-color: orange;
+.team {
   display: block;
   text-align: center;
-}
 
-.team-one {
-  background-color: mediumseagreen;
+  &.team-one {
+    background-color: orange;
+  }
+
+  &.team-two {
+    background-color: mediumseagreen;
+  }
 }
 
 table {

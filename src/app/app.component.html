@@ -46,11 +46,10 @@
     <h2>Solution search</h2>
     <mat-spinner diameter="30" *ngIf="appState === appStateEnum.Solving"></mat-spinner>
     <div *ngIf="schedule.length > 0">
-      Current best solution:
+      Solutions found: {{solutionCount}}
       <ul>
-        <li>Count: {{solutionCount}}</li>
+        <li>Score (lower = better): {{currentScore | number }}</li>
         <li>Found at: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
-        <li>Score: {{currentScore}}</li>
       </ul>
     </div>
     <button mat-stroked-button (click)="stopSearch()"
@@ -67,13 +66,13 @@
     <th>Games</th>
     <th>possible</th>
   </tr>
-  <tr *ngFor="let person of people; let personIndex = index">
+  <tr *ngFor="let person of players; let personIndex = index">
     <td>{{person}}</td>
     <td *ngFor="let date of dates; let dateIndex = index">
       <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.TeamOne"
-            class="team-one"> 1 </span>
+            class="team team-one"> 1 </span>
       <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.TeamTwo"
-            class="team-two"> 2 </span>
+            class="team team-two"> 2 </span>
       <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.Substitute"> E </span>
       <span *ngIf="schedule[personIndex][dateIndex] === stateEnum.Unplanned"> - </span>
     </td>

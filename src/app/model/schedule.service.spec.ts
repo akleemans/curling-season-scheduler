@@ -35,15 +35,17 @@ describe('ScheduleService', () => {
 
 
   describe('isFilled', () => {
+    const testGrid = [
+      [undefined, true, false],
+      [false, true, false],
+      [false, false, false],
+    ];
+
     it('should recognize filled grid', () => {
-      const testGrid = [
-        [undefined, true, false],
-        [false, true, false],
-        [false, false, false],
-      ];
-
       expect(ScheduleService.isFilled(testGrid)).toBeFalse();
+    });
 
+    it('should recognize unfilled grid', () => {
       testGrid[0][0] = true;
       expect(ScheduleService.isFilled(testGrid)).toBeTrue();
     });

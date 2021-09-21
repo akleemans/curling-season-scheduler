@@ -1,6 +1,6 @@
 export enum CellState {
-  TeamOne,
-  TeamTwo,
-  Substitute,
-  Unplanned
+  TeamOne = '1',
+  TeamTwo = '2',
+  Substitute = 'E',
+  Unplanned = ''
 }
