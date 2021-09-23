@@ -24,6 +24,7 @@ export class AppComponent {
   public displayedColumns: string[] = [];
   public readonly stateEnum = CellState;
   public readonly appStateEnum = AppState;
+  private readonly FIXED_SCORE: number = 300;
 
   // data
   public schedule: CellState[][] = [];
@@ -83,7 +84,7 @@ export class AppComponent {
       console.log(`MainComponent got worker message: ${message.status}!`);
       switch (message.status) {
         case WorkerStatus.SOLVING:
-          this.currentScore = message.score;
+          this.currentScore = this.FIXED_SCORE - message.score;
           this.lastSolutionTime = new Date();
           this.solutionCount += 1;
           this.schedule = JSON.parse(message.content);

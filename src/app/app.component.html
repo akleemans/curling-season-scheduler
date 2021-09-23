@@ -48,7 +48,7 @@
     <div *ngIf="schedule.length > 0">
       Solutions found: {{solutionCount}}
       <ul>
-        <li>Score (lower = better): {{currentScore | number }}</li>
+        <li>Score: {{currentScore | number }}</li>
         <li>Found at: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
       </ul>
     </div>
@@ -79,19 +79,4 @@
     <td>{{playerTotal[personIndex]}}</td>
     <td>{{playerPossible[personIndex]}}</td>
   </tr>
-  <!--
-  <tr>
-    <td><b>Team 1</b></td>
-    <td *ngFor="let date of dates;">
-      0
-    </td>
-    <td></td>
-  </tr>
-  <tr>
-    <td><b>Team 2</b></td>
-    <td *ngFor="let date of dates;">
-      0
-    </td>
-    <td></td>
-  </tr>-->
 </table>
