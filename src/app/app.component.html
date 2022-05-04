@@ -58,12 +58,12 @@
     </div>
     <button mat-stroked-button (click)="stopSearch()"
             [disabled]="appState !== appStateEnum.Solving">
-      Stop search & show solution
+      Stop search
     </button>
   </div>
 </div>
 
-<table *ngIf="appState === appStateEnum.Solved">
+<table *ngIf="appState >= appStateEnum.Solving && schedule.length > 0">
   <tr>
     <th>Name</th>
     <th *ngFor="let date of dates">{{date}}</th>
