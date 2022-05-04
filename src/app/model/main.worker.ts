@@ -5,7 +5,8 @@ import {ScheduleService} from './schedule.service';
 import {WorkerMessage, WorkerStatus} from './worker-message';
 
 const sendUpdate = (score: number, grid: CellState[][]) => {
-  postMessage(new WorkerMessage(WorkerStatus.SOLVING, score, JSON.stringify(grid)));
+  const status = (grid.length === 0 ? WorkerStatus.UNSOLVABLE : WorkerStatus.SOLVING);
+  postMessage(new WorkerMessage(status, score, JSON.stringify(grid)));
 };
 
 addEventListener('message', event => {

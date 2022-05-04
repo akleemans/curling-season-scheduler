@@ -8,5 +8,6 @@ export class WorkerMessage {
 
 export enum WorkerStatus {
   SOLVING, // Solving in progress - content will contain progress
-  FINISHED// Finished searching for solution
+  FINISHED,// Finished searching for solution
+  UNSOLVABLE // Unsolvable
 }

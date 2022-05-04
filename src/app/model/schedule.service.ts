@@ -51,10 +51,6 @@ export class ScheduleService {
     let iterations = 0;
     let minStack = 0;
     while (stack.length > 0) {
-      if (iterations % 10000 === 0) {
-        console.log('>> Iteration', iterations, 'minStack:', minStack, 'current stack size:', stack.length, 'stack:', stack.map(i => i[1]?.toString()));
-        minStack = 10000;
-      }
       if (stack.length < minStack) {
         minStack = stack.length;
       }
@@ -67,6 +63,12 @@ export class ScheduleService {
       const lastGuess = item![1];
       const possibleGuesses = this.calculateGuesses(currentGrid);
 
+      if (iterations % 10000 === 0) {
+        console.log('>> Iteration', iterations, 'minStack:', minStack, 'current stack size:', stack.length, 'stack:', stack.map(i => i[1]?.toString()));
+        // console.log('currentGrid:', currentGrid);
+        minStack = 10000;
+      }
+
       let nextGuess;
       if (lastGuess === null) {
         // console.log('Starting to guess on layer.');
@@ -74,7 +76,7 @@ export class ScheduleService {
       } else {
         const lastGuessIdx = _.findIndex(possibleGuesses, g => g[0] === lastGuess[0] && g[1] === lastGuess[1] && g[2] == lastGuess[2]);
         if (lastGuessIdx + 1 === possibleGuesses.length) {
-          // console.log('No more guesses possible, go up.');
+          // console.log('No more guesses possible, go up. possibleGuesses::', JSON.stringify(possibleGuesses));
           continue;
         }
         nextGuess = possibleGuesses[lastGuessIdx + 1];
@@ -91,6 +93,7 @@ export class ScheduleService {
         if (this.isFilled(currentGrid)) {
           // const diff = Math.abs((new Date()).getMilliseconds() - startTime.getMilliseconds()) / 1000.0;
           // console.log('Solved succesfully in', diff, 's (', iterations, 'iterations):', currentGrid);
+          // console.log('Solved succesfully in', iterations, 'iterations):', currentGrid);
           const currentScore = this.getScore(currentGrid)
           if (this.lowestScore > currentScore) {
             this.lowestScore = currentScore;
@@ -102,6 +105,9 @@ export class ScheduleService {
         }
       }
     }
+
+    console.log('Finished loop, no solution found :(')
+    this.sendUpdate(-1, []);
   }
 
   /*
@@ -229,12 +235,14 @@ export class ScheduleService {
   no adjacent dates are allowed at all.
    */
   private static isNear(d0: number, d1: number): boolean {
-    const date0str = this.dates[d0].split('(')[0].trim();
-    const date1str = this.dates[d1].split('(')[0].trim();
+    return this.isNearStr(this.dates[d0], this.dates[d1]);
+  }
 
-    // Currently, just return always true to avoid any dates beside each other
-    // return date0str === date1str;
-    return true;
+  public static isNearStr(d0: string, d1: string): boolean {
+    const date0str = d0.split('(')[0].trim();
+    const date1str = d1.split('(')[0].trim();
+
+    return date0str === date1str;
   }
 
   /*
@@ -365,8 +373,15 @@ export class ScheduleService {
     const oneDayMs = 24 * 60 * 60 * 1000;
     const parts0 = d0.split('.');
     const parts1 = d1.split('.');
-    const date0 = new Date(+parts0[2], +parts0[1] - 1, +parts0[0]);
-    const date1 = new Date(+parts1[2], +parts1[1] - 1, +parts1[0]);
+    let year0 = +parts0[2];
+    let year1 = +parts1[2];
+    if (year0 < 2000) {
+      year0 += 2000;
+      year1 += 2000;
+    }
+
+    const date0 = new Date(year0, +parts0[1] - 1, +parts0[0]);
+    const date1 = new Date(year1, +parts1[1] - 1, +parts1[0]);
 
     return (date0.valueOf() - date0.getDay() * oneDayMs) ===
       (date1.valueOf() - date1.getDay() * oneDayMs);

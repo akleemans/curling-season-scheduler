@@ -10,7 +10,7 @@
       </mat-expansion-panel-header>
       <p>Hard constraints:</p>
       <ul>
-        <li>8 matches per day</li>
+        <li>8 people playing per day</li>
         <li>5 matches per player if possible (else as many as possible)</li>
         <li>No 2 matches on same day</li>
         <li>Skip skill >=3 per day</li>
@@ -29,7 +29,7 @@
     <button (click)="loadData()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Initial">
       <mat-icon>upload</mat-icon>
-      1. Load doodle data
+      1. Load CSV data
     </button>
     <button (click)="generateSchedule()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Uploaded">
@@ -42,6 +42,10 @@
       3. Export
     </button>
   </div>
+  <div *ngIf="appState === appStateEnum.Unsolvable">
+    No solution :(
+  </div>
+
   <div *ngIf="appState >= appStateEnum.Solving">
     <h2>Solution search</h2>
     <mat-spinner diameter="30" *ngIf="appState === appStateEnum.Solving"></mat-spinner>
@@ -49,7 +53,7 @@
       Solutions found: {{solutionCount}}
       <ul>
         <li>Score: {{currentScore | number }}</li>
-        <li>Found at: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
+        <li>Found at time: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
       </ul>
     </div>
     <button mat-stroked-button (click)="stopSearch()"

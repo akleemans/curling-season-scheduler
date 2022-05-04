@@ -13,6 +13,11 @@ describe('ScheduleService', () => {
       expect(ScheduleService.inSameWeek('18.09.2021', '19.09.2021')).toBeFalse();
       expect(ScheduleService.inSameWeek('19.09.2021', '26.09.2021')).toBeFalse();
     });
+
+    it('should recognize dates in same week, short', () => {
+      expect(ScheduleService.inSameWeek('04.05.22', '05.05.22')).toBeTrue();
+      expect(ScheduleService.inSameWeek('02.05.22', '07.05.22')).toBeTrue();
+    });
   });
 
   describe('getDistributionScore', () => {
@@ -42,7 +47,11 @@ describe('ScheduleService', () => {
     ];
 
     it('should recognize filled grid', () => {
-      expect(ScheduleService.isFilled(testGrid)).toBeFalse();
+      expect(ScheduleService.isFilled([
+        [undefined, true, false],
+        [false, true, false],
+        [false, false, false],
+      ])).toBeFalse();
     });
 
     it('should recognize unfilled grid', () => {
@@ -51,4 +60,13 @@ describe('ScheduleService', () => {
     });
   });
 
+  describe('isNear', () => {
+    it('should recognize non-near dates', () => {
+      expect(ScheduleService.isNearStr('03.11.22', '05.11.22')).toBeFalse();
+    });
+
+    it('should recognize near dates', () => {
+      expect(ScheduleService.isNearStr('03.11.22', '03.11.22 (2)')).toBeTrue();
+    });
+  });
 });

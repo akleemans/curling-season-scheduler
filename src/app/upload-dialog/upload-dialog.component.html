@@ -2,7 +2,7 @@
 <div mat-dialog-content>
   <div *ngIf="uploadState === uploadStateEnum.Initial">
     <ol>
-      <li>Export Doodle as Excel</li>
+      <li>Export Doodle/Nuudel as Excel</li>
       <li>Add "Skip-skill": Open the Excel and after each name (in the same cell), enter a number in
         brackets, indicating the skip level:
         <ul>
@@ -18,6 +18,18 @@
       <li>Click "Save as", choose "CSV UTF-8 (Comma delimited) (*.csv)"</li>
       <li>Upload .csv-file here:</li>
     </ol>
+
+    <label>Pick data source:</label>
+    <mat-radio-group class="doodle-radio-group"
+      [(ngModel)]="sourceType">
+      <mat-radio-button class="doodle-radio-button" value="nuudel">
+        Nuudel
+      </mat-radio-button>
+      <mat-radio-button class="doodle-radio-button" value="doodle">
+        Doodle
+      </mat-radio-button>
+    </mat-radio-group>
+
     <input type="file" #fileInput (change)="onFileSelected(fileInput.files)"/>
   </div>
   <mat-spinner *ngIf="uploadState === uploadStateEnum.Uploading"></mat-spinner>

@@ -9,6 +9,7 @@ import {WorkerMessage, WorkerStatus} from './model/worker-message';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
 
 enum AppState {
+  Unsolvable,
   Initial,
   Uploaded,
   Solving,
@@ -90,8 +91,12 @@ export class AppComponent {
           this.schedule = JSON.parse(message.content);
           this.playerTotal = this.schedule.map(p => _.sum(p.map(d => (d === CellState.TeamOne || d === CellState.TeamTwo) ? 1 : 0)));
           break;
+        case WorkerStatus.UNSOLVABLE:
+          this.appState = AppState.Unsolvable;
+          this.worker!.terminate();
+          break;
         case WorkerStatus.FINISHED:
-          console.log('Finished!', message.content);
+          console.log('Finished!', JSON.stringify(message.content));
           this.appState = AppState.Solved;
           this.worker!.terminate();
           break;
@@ -117,9 +122,13 @@ export class AppComponent {
   }
 
   public stopSearch(): void {
-    this.appState = AppState.Solved;
-    console.log('Schedule not solvable!');
     this.worker!.terminate();
+    if (this.schedule.length === 0) {
+      console.log('Schedule not solvable!');
+      this.appState = AppState.Unsolvable;
+    } else {
+      this.appState = AppState.Solved;
+    }
   }
 
   public loadData(): void {
