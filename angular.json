@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "season-scheduler": {
+    "curling-season-scheduler": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "outputPath": "docs",
-            "baseHref": "/season-scheduler/",
+            "baseHref": "/curling-season-scheduler/",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -75,10 +75,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "season-scheduler:build:production"
+              "browserTarget": "curling-season-scheduler:build:production"
             },
             "development": {
-              "browserTarget": "season-scheduler:build:development"
+              "browserTarget": "curling-season-scheduler:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -105,5 +105,5 @@
       }
     }
   },
-  "defaultProject": "season-scheduler"
+  "defaultProject": "curling-season-scheduler"
 }

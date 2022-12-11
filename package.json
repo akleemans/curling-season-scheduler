@@ -1,5 +1,5 @@
 {
-  "name": "season-scheduler",
+  "name": "curling-season-scheduler",
   "version": "0.0.0",
   "scripts": {
     "serve": "ng serve",
