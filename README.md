@@ -1,6 +1,6 @@
-# season-scheduler
+# curling-season-scheduler
 
-Schedule a season.
+Schedule a curling season.
 
 ## Deployment to Github pages
 
