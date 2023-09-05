@@ -95,6 +95,7 @@ export class AppComponent {
   public downloadData(): void {
     // Prepare data
     const data: string[] = []
+    data.push('Name,' + this.dates.map(d => d.toString()).join(',') + '\n');
     for (let p = 0; p < this.availabilities.length; p++) {
       data.push(this.players[p] + ',' + this.schedule[p].map(d => d.toString()).join(',') + '\n');
     }
