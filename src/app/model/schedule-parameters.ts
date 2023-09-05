@@ -5,4 +5,5 @@ export interface ScheduleParameters {
   skipabilities: Skipability[];
   people: string[];
   dates: string[];
+  skipabilityFromHash: boolean[];
 }

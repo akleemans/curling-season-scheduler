@@ -11,6 +11,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {AppComponent} from './app.component';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
     MatExpansionModule,
     MatRadioModule,
     FormsModule,
+    MatSelectModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

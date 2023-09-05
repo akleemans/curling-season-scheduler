@@ -34,6 +34,7 @@ export class AppComponent {
   public solutionCount: number = 0;
   public availabilities: boolean[][] = [];
   public skipabilities: Skipability[] = [];
+  public skipabilityFromHash: boolean[] = [];
   public players: string[] = [];
   public dates: string[] = [];
 
@@ -43,34 +44,15 @@ export class AppComponent {
 
   public worker?: Worker;
 
+  public basicVerificationErrors: string[] = [];
+  public temporaryEnabled: { dateIdx: number, personIdx: number }[] = [];
+
   public constructor(
     private readonly dialog: MatDialog,
   ) {
   }
 
   public prepareTableData(): void {
-    /*
-    // Example data - read out real data
-    for (let p = 0; p < 20; p++) {
-      this.people.push('Person ' + p)
-      this.skipabilities.push(p % 3);
-    }
-    for (let d = 0; d < 10; d++) {
-      this.dates.push('date ' + d)
-    }
-
-    // Generate base schedule
-    for (let p = 0; p < this.people.length; p++) {
-      const row = [];
-      for (let d = 0; d < this.dates.length; d++) {
-        row.push(Math.random() < 0.8);
-      }
-      this.availabilities.push(row);
-    }
-    */
-    //console.log('Generated availabilities:', this.availabilities);
-    //console.log('Generated skipabilities:', this.skipabilities);
-
     this.playerPossible = this.availabilities.map(p => _.sum(p.map(d => d ? 1 : 0)));
     this.displayedColumns = ['name'].concat(this.dates);
   }
@@ -123,6 +105,13 @@ export class AppComponent {
 
   public stopSearch(): void {
     this.worker!.terminate();
+
+    // Reset temporary enabled
+    for (let temp of this.temporaryEnabled) {
+      this.schedule[temp.personIdx][temp.dateIdx] = CellState.Unplanned;
+      this.playerTotal = this.schedule.map(p => _.sum(p.map(d => (d === CellState.TeamOne || d === CellState.TeamTwo) ? 1 : 0)));
+    }
+
     if (this.schedule.length === 0) {
       console.log('Schedule not solvable!');
       this.appState = AppState.Unsolvable;
@@ -137,15 +126,46 @@ export class AppComponent {
     dialogRef.afterClosed().subscribe(async (data: ScheduleParameters) => {
       if (data) {
         console.log('Loaded data:', data);
-        this.appState = AppState.Uploaded;
         this.availabilities = data.availabilities;
         this.skipabilities = data.skipabilities;
         this.players = data.people;
         this.dates = data.dates;
+        this.skipabilityFromHash = data.skipabilityFromHash;
 
         console.log('Got people:', this.players, 'dates:', this.dates);
         this.prepareTableData();
+        this.doBasicVerification();
+        this.appState = AppState.Uploaded;
       }
     });
+  }
+
+  private doBasicVerification(): void {
+    // Check dates if 8 slots are available
+    for (let i = 0; i < this.dates.length; i++) {
+      let count = 0;
+      for (let p = 0; p < this.players.length; p++) {
+        count += (this.availabilities[p][i] ? 1 : 0);
+      }
+
+      if (count < 8) {
+        let error = `Datum ${this.dates[i]} nicht möglich: Nur ${count} Personen können an diesem Tag spielen.
+        Setze temporär bei allen auf "Ja" (wird am Ende wieder zurückgesetzt).`;
+
+        for (let p = 0; p < this.availabilities.length; p++) {
+          /*
+          if (count === 8) {
+            break;
+          }*/
+          if (!this.availabilities[p][i]) {
+            // error += `Setze bei ${this.players[i]} temporär auf "Ja" (wird am Ende wieder zurückgesetzt).`
+            this.availabilities[p][i] = true;
+            this.temporaryEnabled.push({dateIdx: i, personIdx: p});
+            count += 1;
+          }
+        }
+        this.basicVerificationErrors.push(error);
+      }
+    }
   }
 }

@@ -1,26 +1,26 @@
 <div class="container">
-  <h2>Season scheduler</h2>
+  <h2>Klubmeisterschaft Saisonplanung</h2>
   <mat-accordion>
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title>
-          Overview: constraints
+          Übersicht Regeln
         </mat-panel-title>
         <mat-panel-description></mat-panel-description>
       </mat-expansion-panel-header>
-      <p>Hard constraints:</p>
+      <p>Fixe Regeln:</p>
       <ul>
-        <li>8 people playing per day</li>
-        <li>5 matches per player if possible (else as many as possible)</li>
-        <li>No 2 matches on same day</li>
-        <li>Skip skill >=3 per day</li>
+        <li>8 Personen (in 2 Teams) spielen pro Tag</li>
+        <li>5 Spiele pro Spieler (in der ganzen Saison) wenn möglich, ansonsten so viel wie möglich</li>
+        <li>Keine 2 Spiele pro Person am gleichen Tag</li>
+        <li>Skip skill sollte >=3 sein pro Tag</li>
       </ul>
 
-      <p>Soft constraints (this will be optimized for):</p>
+      <p>"Softe" Regeln (darauf wird optimiert):</p>
       <ul>
-        <li>No matches in same week</li>
-        <li>Matches evenly distributed over season</li>
-        <li>Matches evenly distributed over players</li>
+        <li>Keine Spiele in derselben Woche</li>
+        <li>Spiele möglichst gleichmässig über die Saison verteilt</li>
+        <li>Spiele möglichst gleichmässig über alle Personen verteilt</li>
       </ul>
     </mat-expansion-panel>
   </mat-accordion>
@@ -29,12 +29,12 @@
     <button (click)="loadData()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Initial">
       <mat-icon>upload</mat-icon>
-      1. Load CSV data
+      1. CSV laden
     </button>
     <button (click)="generateSchedule()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Uploaded">
       <mat-icon>auto_fix_high</mat-icon>
-      2. Solution search
+      2. Lösungssuche
     </button>
     <button (click)="downloadData()" mat-stroked-button color="primary"
             [disabled]="appState !== appStateEnum.Solved">
@@ -43,22 +43,54 @@
     </button>
   </div>
   <div *ngIf="appState === appStateEnum.Unsolvable">
-    No solution :(
+    Keine Lösung gefunden :(
+  </div>
+
+  <div *ngIf="basicVerificationErrors.length > 0" class="basic-verification">
+    <b>Achtung</b>:
+    <ul>
+      <li *ngFor="let error of basicVerificationErrors">{{error}}</li>
+    </ul>
+  </div>
+
+  <div *ngIf="appState === appStateEnum.Uploaded">
+    <h2>Eingelesene CSV-Daten</h2>
+    <p><b>{{dates.length}} Daten: </b>
+      <span *ngFor="let d of dates">{{d}}, </span>
+    </p>
+
+    <p><b>{{players.length}} Personen</b></p>
+    <p>
+      Neben dem Namen steht jeweils eine Zahl, die den ungefähren "Skip-skill" angibt. Falls schon (anonymisiert)
+      erfasst, wird diese voreingefüllt (falls nicht vorhanden mit * markiert) und kann hier noch angepasst werden.
+    </p>
+    <ul>
+      <li *ngFor="let p of players; let i = index">
+        {{p}} <span *ngIf="!skipabilityFromHash[i]">*</span> /
+        <mat-form-field style="width: 40px; height: 34px;">
+          <mat-select [(ngModel)]="skipabilities[i]">
+            <mat-option [value]="0">0</mat-option>
+            <mat-option [value]="1">1</mat-option>
+            <mat-option [value]="2">2</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </li>
+    </ul>
   </div>
 
   <div *ngIf="appState >= appStateEnum.Solving">
-    <h2>Solution search</h2>
+    <h2>Lösungssuche</h2>
     <mat-spinner diameter="30" *ngIf="appState === appStateEnum.Solving"></mat-spinner>
     <div *ngIf="schedule.length > 0">
-      Solutions found: {{solutionCount}}
+      Lösungen gefunden: {{solutionCount}}
       <ul>
         <li>Score: {{currentScore | number }}</li>
-        <li>Found at time: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
+        <li>Zeitpunkt: {{lastSolutionTime | date : 'HH:mm:ss' }}</li>
       </ul>
     </div>
     <button mat-stroked-button (click)="stopSearch()"
             [disabled]="appState !== appStateEnum.Solving">
-      Stop search
+      Suche stoppen
     </button>
   </div>
 </div>
@@ -67,8 +99,8 @@
   <tr>
     <th>Name</th>
     <th *ngFor="let date of dates">{{date}}</th>
-    <th>Games</th>
-    <th>possible</th>
+    <th>Geplante Spiele</th>
+    <th>Mögliche Spiele</th>
   </tr>
   <tr *ngFor="let person of players; let personIndex = index">
     <td>{{person}}</td>

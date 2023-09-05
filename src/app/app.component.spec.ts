@@ -23,7 +23,6 @@ describe('AppComponent', () => {
       ],
       providers: [
         {provide: MatDialogRef, useValue: {}},
-        // {provide: MAT_DIALOG_DATA, useValue: dialogData}
       ]
     }).compileComponents();
   });

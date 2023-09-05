@@ -1,48 +1,24 @@
-<h1 mat-dialog-title>Upload doodle CSV</h1>
+<h1 mat-dialog-title>CSV hochladen</h1>
 <div mat-dialog-content>
   <div *ngIf="uploadState === uploadStateEnum.Initial">
-    <ol>
-      <li>Export Doodle/Nuudel as Excel</li>
-      <li>Add "Skip-skill": Open the Excel and after each name (in the same cell), enter a number in
-        brackets, indicating the skip level:
-        <ul>
-          <li>(2) = Yes, can be skip</li>
-          <li>(1) = Could be skip if necessary</li>
-          <li>(0) = No, can not be skip</li>
-        </ul>
-        Example:
-        <pre>
-  Max Muster (0)
-  Hanna Hagen (2)</pre>
-      </li>
-      <li>Click "Save as", choose "CSV UTF-8 (Comma delimited) (*.csv)"</li>
-      <li>Upload .csv-file here:</li>
-    </ol>
-
-    <label>Pick data source:</label>
-    <mat-radio-group class="doodle-radio-group"
-      [(ngModel)]="sourceType">
-      <mat-radio-button class="doodle-radio-button" value="nuudel">
-        Nuudel
-      </mat-radio-button>
-      <mat-radio-button class="doodle-radio-button" value="doodle">
-        Doodle
-      </mat-radio-button>
-    </mat-radio-group>
-
+    <p>
+      Du kannst hier direkt das aus <b>Nuudel</b> exportierte CSV hochladen.<br>
+      Aktuell wird nur Nuudel unterstützt.
+    </p>
     <input type="file" #fileInput (change)="onFileSelected(fileInput.files)"/>
   </div>
   <mat-spinner *ngIf="uploadState === uploadStateEnum.Uploading"></mat-spinner>
   <div *ngIf="uploadState === uploadStateEnum.Uploaded">
-    <h3>Upload successful</h3>
+    <h3>Upload erfolgreich</h3>
     <p>
-      You can now load the data to start scheduling.
+      Die Daten können jetzt importiert werden. <br>
+      Du hast die Möglichkeit im nächsten Schritt zu überprüfen ob das Einlesen geklappt hast.
     </p>
   </div>
   <div mat-dialog-actions style="justify-content: flex-end;">
-    <button mat-stroked-button (click)="dialogRef.close()" color="warn">Cancel</button>
+    <button mat-stroked-button (click)="dialogRef.close()" color="warn">Abbrechen</button>
     <button mat-stroked-button [matDialogClose]="scheduleParameters" color="primary">
-      Load
+      Laden
     </button>
   </div>
 </div>

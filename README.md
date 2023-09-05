@@ -2,10 +2,12 @@
 
 Schedule a curling season.
 
+Live version: [https://akleemans.github.io/curling-season-scheduler/](https://akleemans.github.io/curling-season-scheduler/)
+
 ## Deployment to Github pages
 
-Deploy the app to azure:
+Build the App:
 
     npm run build
 
-This will update the `docs` folder with the latest build. Publishing the site is done by Github.
+This will update the `docs` folder with the latest build. Publishing the site is done by Github Pages.
