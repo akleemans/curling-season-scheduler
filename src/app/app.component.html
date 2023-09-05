@@ -63,11 +63,12 @@
     <p>
       Neben dem Namen steht jeweils eine Zahl, die den ungefähren "Skip-skill" angibt. Falls schon (anonymisiert)
       erfasst, wird diese voreingefüllt (falls nicht vorhanden mit * markiert) und kann hier noch angepasst werden.
+      Legende: 2 = Skippen ja, 1 = Skippen wenn nötig, 0 = Skippen nein.
     </p>
     <ul>
       <li *ngFor="let p of players; let i = index">
         {{p}} <span *ngIf="!skipabilityFromHash[i]">*</span> /
-        <mat-form-field style="width: 40px; height: 34px;">
+        <mat-form-field class="skip-form-field dense-2">
           <mat-select [(ngModel)]="skipabilities[i]">
             <mat-option [value]="0">0</mat-option>
             <mat-option [value]="1">1</mat-option>
