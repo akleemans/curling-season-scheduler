@@ -274,7 +274,7 @@ export class ScheduleService {
     // 2. 8 open (possible) fields per date
     for (let d = 0; d < this.dateCount; d++) {
       let possibleDateCount = _.sum(grid.map(p => p[d] !== false ? 1 : 0));
-      if (possibleDateCount < this.MATCHES_PER_DAY) {
+      if (possibleDateCount < this.MATCHES_PER_DAY && possibleDateCount > 0) {
         // console.log('Invalid: Date cannot have 8 matches (only ', possibleDateCount, '), d=', d);
         return false;
       }

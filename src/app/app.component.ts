@@ -45,7 +45,7 @@ export class AppComponent {
   public worker?: Worker;
 
   public basicVerificationErrors: string[] = [];
-  public temporaryEnabled: { dateIdx: number, personIdx: number }[] = [];
+  public temporaryEnabled: { dateIdx: number }[] = [];
 
   public constructor(
     private readonly dialog: MatDialog,
@@ -107,12 +107,6 @@ export class AppComponent {
   public stopSearch(): void {
     this.worker!.terminate();
 
-    // Reset temporary enabled
-    for (let temp of this.temporaryEnabled) {
-      this.schedule[temp.personIdx][temp.dateIdx] = CellState.Unplanned;
-      this.playerTotal = this.schedule.map(p => _.sum(p.map(d => (d === CellState.TeamOne || d === CellState.TeamTwo) ? 1 : 0)));
-    }
-
     if (this.schedule.length === 0) {
       console.log('Schedule not solvable!');
       this.appState = AppState.Unsolvable;
@@ -151,19 +145,10 @@ export class AppComponent {
 
       if (count < 8) {
         let error = `Datum ${this.dates[i]} nicht möglich: Nur ${count} Personen können an diesem Tag spielen.
-        Setze temporär bei allen auf "Ja" (wird am Ende wieder zurückgesetzt).`;
+        Setze Datum bei allen auf "Nein".`;
 
         for (let p = 0; p < this.availabilities.length; p++) {
-          /*
-          if (count === 8) {
-            break;
-          }*/
-          if (!this.availabilities[p][i]) {
-            // error += `Setze bei ${this.players[i]} temporär auf "Ja" (wird am Ende wieder zurückgesetzt).`
-            this.availabilities[p][i] = true;
-            this.temporaryEnabled.push({dateIdx: i, personIdx: p});
-            count += 1;
-          }
+          this.availabilities[p][i] = false;
         }
         this.basicVerificationErrors.push(error);
       }

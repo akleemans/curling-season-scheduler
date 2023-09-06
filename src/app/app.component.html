@@ -67,7 +67,7 @@
     </p>
     <ul>
       <li *ngFor="let p of players; let i = index">
-        {{p}} <span *ngIf="!skipabilityFromHash[i]">*</span> /
+        {{p}} <span *ngIf="!skipabilityFromHash[i]" style="color: red;">*</span> /
         <mat-form-field class="skip-form-field dense-2">
           <mat-select [(ngModel)]="skipabilities[i]">
             <mat-option [value]="0">0</mat-option>
