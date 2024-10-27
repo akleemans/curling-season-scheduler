@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import * as FileSaver from "file-saver";
 import * as _ from 'lodash';
@@ -7,6 +7,7 @@ import {ScheduleParameters} from './model/schedule-parameters';
 import {Skipability} from './model/skipability';
 import {WorkerMessage, WorkerStatus} from './model/worker-message';
 import {UploadDialogComponent} from './upload-dialog/upload-dialog.component';
+import {HttpClient} from "@angular/common/http";
 
 enum AppState {
   Unsolvable,
@@ -21,7 +22,7 @@ enum AppState {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   public displayedColumns: string[] = [];
   public readonly stateEnum = CellState;
   public readonly appStateEnum = AppState;
@@ -49,7 +50,13 @@ export class AppComponent {
 
   public constructor(
     private readonly dialog: MatDialog,
+    private readonly http: HttpClient
   ) {
+  }
+
+  public ngOnInit(): void {
+    this.http.get('https://akleemans.pythonanywhere.com/api/visitors?project=curling-season-scheduler')
+      .subscribe((visitorResponse) => console.log('Visitor count:', visitorResponse));
   }
 
   public prepareTableData(): void {
